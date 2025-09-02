@@ -179,6 +179,7 @@ alias vi='nvim'
 alias ls='ls --color=auto -hvF'
 alias ll='ls -l'
 alias la='ls -lA'
+alias llinks='ll `find . -maxdepth 1 -type l -print`'
 
 # alias mv
 alias mv='mv -i'
