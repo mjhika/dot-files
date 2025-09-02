@@ -1,0 +1,2 @@
+{:lint-as {org.httpkit.client/defreq clojure.core/declare
+           com.wsscode.pathom3.connect.operation/defresolver clojure.core/defn}}

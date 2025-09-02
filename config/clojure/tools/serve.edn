@@ -1,0 +1,5 @@
+{:lib io.github.babashka/http-server,
+ :coord
+ {:git/tag "v0.1.13",
+  :git/sha "71260cb334201bced0c3680d39cde29147679857",
+  :git/url "https://github.com/babashka/http-server.git"}}

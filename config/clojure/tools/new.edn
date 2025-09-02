@@ -1,0 +1,1 @@
+{:lib io.github.seancorfield/deps-new, :coord {:git/tag "v0.6.0", :git/sha "64e79d1"}}
