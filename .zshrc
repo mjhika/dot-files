@@ -171,11 +171,9 @@ export DOOMDIR="$XDG_CONFIG_HOME/doom"
 # to retain the default emacs experience we manually overide bindkey emacs mode
 bindkey -e
 
-alias kvim='NVIM_APPNAME=kickstart-nvim nvim'
-
 # Vim alias
-alias vim='kvim'
-alias vi='kvim'
+alias vim='nvim'
+alias vi='nvim'
 
 # alias ls
 alias ls='ls --color=auto -hvF'
