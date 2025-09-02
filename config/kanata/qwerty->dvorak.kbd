@@ -1,0 +1,26 @@
+(defsrc
+  `     1 2 3 4 5 6 7 8 9 0 - =
+        q w e r t y u i o p [ ] \
+  caps  a s d f g h j k l ; '
+  lctrl z x c v b n m , . /)
+
+(deflayer dvorak
+  `     1 2 3 4 5 6 7 8 9 0 [ ]
+        ' , .  p y f g c r l / = \
+  lctrl a o e  u i d h t n s -
+  caps  ; q j k x b m w v z)
+
+(deflayer qwerty
+  `     1 2 3 4 5 6 7 8 9 0 - =
+        q w e r t y u i o p [ ] \
+  lctrl a s d f g h j k l ; '
+  caps  z x c v b n m , . /)
+
+(defcfg
+  process-unmapped-keys  yes
+   concurrent-tap-hold   yes
+   allow-hardware-repeat no)
+
+(defchordsv2
+  (ralt 1) (layer-switch dvorak) 100 all-released ()
+  (ralt 2) (layer-switch qwerty) 100 all-released ())

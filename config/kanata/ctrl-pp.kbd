@@ -1,0 +1,8 @@
+(defcfg
+  process-unmapped-keys yes)
+
+(defsrc
+  caps lctl)
+
+(deflayer default
+  lctl caps)
