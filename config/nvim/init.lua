@@ -119,6 +119,16 @@ vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv", { desc = "Move selected line up" })
 vim.keymap.set("n", "j", "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
 vim.keymap.set("n", "k", "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
 
+-- Toggle theme background
+local function toggle_background_theme()
+	if vim.o.background == "light" then
+		vim.o.background = "dark"
+	else
+		vim.o.background = "light"
+	end
+end
+vim.keymap.set("n", "<leader>tt", toggle_background_theme, { desc = "Toggle background theme" })
+
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
