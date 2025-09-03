@@ -60,8 +60,11 @@ add_to_path() {
 }
 
 add_to_path -p $HOME/.local/bin
-add_to_path -p $HOME/go/bin
-add_to_path -a /usr/local/go/bin
+
+if [[ $(command -v go) ]]; then
+  add_to_path -p $HOME/go/bin
+  add_to_path -a /usr/local/go/bin
+fi
 
 export XDG_CONFIG_HOME="$HOME/.config"
 export XDG_DATA_HOME="$HOME/.local/share"
@@ -162,8 +165,10 @@ if [[ $(command -v direnv version) ]]; then
   eval "$(direnv hook zsh)"
 fi
 
-export GOBIN="$(go env GOPATH)/bin"
-export GOPRIVATE="github.com/mjhika,github.com/EVIRTSHEALTH"
+if [[ $(command -v go) ]]; then
+  export GOBIN="$(go env GOPATH)/bin"
+  export GOPRIVATE="github.com/mjhika,github.com/EVIRTSHEALTH"
+fi
 export BAT_THEME="ansi"
 export DOOMDIR="$XDG_CONFIG_HOME/doom"
 
