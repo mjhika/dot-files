@@ -63,7 +63,12 @@ add_to_path -p $HOME/.local/bin
 
 if [[ $(command -v go) ]]; then
   add_to_path -p $HOME/go/bin
-  add_to_path -a /usr/local/go/bin
+  case "$OSTYPE" in
+    linux-gnu) add_to_path -a /usr/local/go/bin ;;
+    darwin*)   add_to_path -a /usr/local/go/bin ;;
+    freebsd*)  add_to_path -a /usr/local/bin/go ;;
+    *)         echo unknown OSTYPE ;;
+  esac
 fi
 
 export XDG_CONFIG_HOME="$HOME/.config"
