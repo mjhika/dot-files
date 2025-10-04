@@ -840,6 +840,13 @@ require("lazy").setup({
 		end,
 	},
 
+	{
+		"f-person/auto-dark-mode.nvim",
+		opts = {
+			fallback = "light",
+		},
+	},
+
 	-- Highlight todo, notes, etc in comments
 	{
 		"folke/todo-comments.nvim",
