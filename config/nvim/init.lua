@@ -966,6 +966,9 @@ require("lazy").setup({
 				init = function()
 					vim.g.parinfer_force_balance = true
 				end,
+				config = function()
+					vim.g["conjure#mapping#doc_word"] = "K"
+				end,
 			},
 		},
 		init = function()
