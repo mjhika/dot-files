@@ -126,6 +126,15 @@ local function toggle_background_theme()
 end
 vim.keymap.set("n", "<leader>tt", toggle_background_theme, { desc = "Toggle background theme" })
 
+local function toggle_line_wrap()
+	if vim.opt.wrap:get() then
+		vim.o.wrap = false
+	else
+		vim.o.wrap = true
+	end
+end
+vim.keymap.set("n", "<leader>tw", toggle_line_wrap, { desc = "Toggle line wrapping" })
+
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
