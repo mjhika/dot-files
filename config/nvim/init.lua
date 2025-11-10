@@ -86,9 +86,6 @@ vim.o.confirm = true
 -- Disable the line wrapping
 vim.o.wrap = false
 
--- Manually set the background for themes
-vim.o.background = "light"
-
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
 
@@ -122,9 +119,9 @@ vim.keymap.set("n", "k", "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = tr
 -- Toggle theme background
 local function toggle_background_theme()
 	if vim.o.background == "light" then
-		vim.o.background = "dark"
+		vim.cmd.colorscheme("AlabastardDark")
 	else
-		vim.o.background = "light"
+		vim.cmd.colorscheme("AlabastardLight")
 	end
 end
 vim.keymap.set("n", "<leader>tt", toggle_background_theme, { desc = "Toggle background theme" })
@@ -758,22 +755,27 @@ require("lazy").setup({
 	},
 
 	{
-		"miikanissi/modus-themes.nvim",
-		priority = 1000, -- Make sure to load this before all the other start plugins.
+		"mjhika/alabastard.nvim",
+		dir = "~/git/personal/alabastard",
+		priority = 1000,
 		config = function()
-			---@diagnostic disable-next-line: missing-fields
-			require("modus-themes").setup({
-				dim_inactive = true,
-				hide_inactive_statusline = true,
-			})
+			require("alabastard").setup()
 
-			vim.cmd.colorscheme("modus")
+			vim.cmd.colorscheme("AlabastardLight")
 		end,
 	},
 
 	{
 		"f-person/auto-dark-mode.nvim",
 		opts = {
+			set_dark_mode = function()
+				vim.api.nvim_set_option_value("background", "dark", {})
+				vim.cmd.colorscheme("AlabastardDark")
+			end,
+			set_light_mode = function()
+				vim.api.nvim_set_option_value("background", "light", {})
+				vim.cmd.colorscheme("AlabastardLight")
+			end,
 			fallback = "light",
 		},
 	},
