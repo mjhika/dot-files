@@ -183,7 +183,7 @@ bindkey -e
 
 # Vim alias
 alias vim='nvim'
-alias vi='nvim'
+alias vi='/usr/bin/vim'
 
 # alias ls
 alias ls='ls --color=auto -hvF'
