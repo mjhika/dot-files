@@ -109,7 +109,7 @@ automatically-unhide-macos-hidden-apps = false
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#layout
     alt-slash = 'layout tiles horizontal vertical'
-    alt-comma = 'layout accordion horizontal'
+    alt-comma = 'layout accordion horizontal vertical'
     alt-period = 'layout floating tiling'
     alt-ctrl-cmd-slash = 'layout tiles horizontal vertical'
     alt-ctrl-cmd-comma = 'layout accordion horizontal'
