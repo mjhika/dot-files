@@ -659,11 +659,12 @@ require("lazy").setup({
 				end
 			end,
 			formatters_by_ft = {
-				lua = { "stylua" },
+				bash = { "beautysh" },
 				c = { "clang_format" },
 				clojure = { "clj-kondo" },
 				go = { "gofmt", "goimports", "golangci-lint" },
 				json = { "jq" },
+				lua = { "stylua" },
 			},
 		},
 	},
