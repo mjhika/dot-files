@@ -1,0 +1,13 @@
+[tools]
+erlang = "latest"
+go = "latest"
+usage = "latest"
+elixir = "latest"
+java = "temurin"
+zig = "latest"
+clojure = "latest"
+terraform = "latest"
+ansible = "latest"
+jq = "latest"
+node = "latest"
+"github:tmux/tmux-builds" = "latest"

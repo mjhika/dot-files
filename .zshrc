@@ -63,12 +63,6 @@ add_to_path -p $HOME/.local/bin
 
 if [[ $(command -v go) ]]; then
   add_to_path -p $HOME/go/bin
-  case "$OSTYPE" in
-    linux-gnu) add_to_path -a /usr/local/go/bin ;;
-    darwin*)   add_to_path -a /usr/local/go/bin ;;
-    freebsd*)  add_to_path -a /usr/local/bin/go ;;
-    *)         echo unknown OSTYPE ;;
-  esac
 fi
 
 export XDG_CONFIG_HOME="$HOME/.config"
@@ -77,7 +71,6 @@ export XDG_STATE_HOME="$HOME/.local/state"
 export XDG_CACHE_HOME="$HOME/.cache"
 
 export EDITOR="vim"
-export SDKMAN_DIR="$XDG_DATA_HOME/sdkman"
 
 HISTFILE="$XDG_DATA_HOME/.zsh_history"
 HISTSIZE=100000
@@ -226,4 +219,5 @@ if [[ $(command -v fzf) ]]; then
   eval "$(fzf --zsh)"
 fi
 
-[[ -s "$XDG_DATA_HOME/sdkman/bin/sdkman-init.sh" ]] && source "$XDG_DATA_HOME/sdkman/bin/sdkman-init.sh"
+# activate mise
+eval "$(mise activate zsh)"
