@@ -175,8 +175,8 @@ export DOOMDIR="$XDG_CONFIG_HOME/doom"
 bindkey -e
 
 # Vim alias
-alias vim='nvim'
-alias vi='/usr/bin/vim'
+alias vim="$(where nvim | grep / | tail -n 1)"
+alias vi="$(where vim | grep / | tail -n 1)"
 
 # alias ls
 alias ls='ls --color=auto -hvF'
