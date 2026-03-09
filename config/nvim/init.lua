@@ -119,9 +119,9 @@ vim.keymap.set("n", "k", "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = tr
 -- Toggle theme background
 local function toggle_background_theme()
 	if vim.o.background == "light" then
-		vim.cmd.colorscheme("AlabastardDark")
+		vim.cmd.colorscheme("alabastarddark")
 	else
-		vim.cmd.colorscheme("AlabastardLight")
+		vim.cmd.colorscheme("alabastardlight")
 	end
 end
 vim.keymap.set("n", "<leader>tt", toggle_background_theme, { desc = "Toggle background theme" })
@@ -775,7 +775,7 @@ require("lazy").setup({
 		config = function()
 			require("alabastard").setup()
 
-			vim.cmd.colorscheme("AlabastardLight")
+			vim.cmd.colorscheme("alabastardlight")
 		end,
 	},
 
@@ -784,11 +784,11 @@ require("lazy").setup({
 		opts = {
 			set_dark_mode = function()
 				vim.api.nvim_set_option_value("background", "dark", {})
-				vim.cmd.colorscheme("AlabastardDark")
+				vim.cmd.colorscheme("alabastarddark")
 			end,
 			set_light_mode = function()
 				vim.api.nvim_set_option_value("background", "light", {})
-				vim.cmd.colorscheme("AlabastardLight")
+				vim.cmd.colorscheme("alabastardlight")
 			end,
 			fallback = "light",
 		},
