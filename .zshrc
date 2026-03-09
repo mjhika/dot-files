@@ -101,10 +101,6 @@ export DOOMDIR="$XDG_CONFIG_HOME/doom"
 # to retain the default emacs experience we manually overide bindkey emacs mode
 bindkey -e
 
-# Vim alias
-alias vim="$(where nvim | grep / | tail -n 1)"
-alias vi="$(where vim | grep / | tail -n 1)"
-
 # alias ls
 alias ls='ls --color=auto -hvF'
 alias ll='ls -l'
