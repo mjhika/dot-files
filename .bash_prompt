@@ -1,0 +1,89 @@
+# ------- ( COLOR DEFINITIONS ) ------------------------------------------------
+# Using tput is more portable than raw escape codes.
+
+_c_reset=$(tput sgr0)
+_c_bold=$(tput bold)
+_c_red=$(tput setaf 1)
+_c_green=$(tput setaf 2)
+_c_blue=$(tput setaf 4)
+_c_grey=$(tput setaf 7)
+
+# Wrap colors in \[ \] so bash doesn't miscount the prompt length.
+R="\[${_c_reset}\]"
+B="\[${_c_bold}\]"
+C_RED="\[${_c_red}\]"
+C_GREEN="\[${_c_green}\]"
+C_BLUE="\[${_c_blue}\]"
+C_GREY="\[${_c_grey}\]"
+
+# ------- ( SSH DETECTION ) ----------------------------------------------------
+# Detects SSH even through sudo, su, tmux, screen, etc.
+
+__detect_ssh() {
+    local pid=$$
+    while [[ $pid -gt 1 ]]; do
+        local comm
+        comm=$(ps -o comm= -p "$pid" 2>/dev/null) || break
+        case "${comm##*/}" in
+            sshd) return 0 ;;
+        esac
+        pid=$(ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ') || break
+    done
+    # Fallback: check environment in case the tree walk missed it
+    [[ -n "${SSH_CLIENT}" || -n "${SSH_TTY}" || -n "${SSH_CONNECTION}" ]]
+}
+
+__detect_ssh && PROMPT_IS_SSH=1 || PROMPT_IS_SSH=0
+
+# ------- ( PROMPT FUNCTION ) --------------------------------------------------
+
+__build_prompt() {
+    # Capture last exit code for pass/fail coloring on the lambda
+    local last_exit=$?
+
+    # Lambda color: green if success (0), red otherwise
+    local lambda_color
+    if [[ $last_exit -eq 0 ]]; then
+        lambda_color="${C_GREEN}"
+    else
+        lambda_color="${C_RED}"
+    fi
+
+    # User color: red for root, orange for foreign user, normal for you
+    local user_color
+    if [[ $EUID -eq 0 ]]; then
+        user_color="${C_RED}${B}"
+    else
+        user_color="${C_GREY}"
+    fi
+
+    # Hostname color: blue if remote (SSH), normal if local
+    local host_color
+    if [[ $PROMPT_IS_SSH -eq 1 ]]; then
+        host_color="${C_BLUE}${B}"
+    else
+        host_color="${C_GREY}"
+    fi
+
+    # Directory color: red if the current directory is not writable
+    local dir_color
+    if [[ -w "${PWD}" ]]; then
+        dir_color="${C_GREY}"
+    else
+        dir_color="${C_RED}${B}"
+    fi
+
+    # Assemble the prompt
+    # Format: (user@hostname) (~/path) λ
+    PS1="${R}${C_GREY}(${R}"
+    PS1+="${user_color}\u${R}"                  # \u = username
+    PS1+="${C_GREY}@${R}"
+    PS1+="${host_color}\h${R}"                  # \h = short hostname
+    PS1+="${C_GREY}) (${R}"
+    PS1+="${dir_color}\w${R}"                   # \w = working directory
+    PS1+="${C_GREY})${R} "
+    PS1+="${lambda_color}λ${R} "
+}
+
+# Set PROMPT_COMMAND
+PROMPT_COMMAND="__build_prompt${PROMPT_COMMAND:+;$PROMPT_COMMAND}"
