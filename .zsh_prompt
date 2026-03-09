@@ -1,0 +1,64 @@
+# ------- ( SSH DETECTION ) ----------------------------------------------------
+# Cached at startup — SSH status doesn't change mid-session.
+# Detects SSH even through sudo, su, tmux, screen, etc.
+
+__detect_ssh() {
+    local pid=$$
+    while (( pid > 1 )); do
+        local comm
+        comm=$(ps -o comm= -p "$pid" 2>/dev/null) || break
+        case "${comm:t}" in
+            sshd) return 0 ;;
+        esac
+        pid=$(ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ') || break
+    done
+    # Fallback: check environment in case the tree walk missed it
+    [[ -n "${SSH_CLIENT}" || -n "${SSH_TTY}" || -n "${SSH_CONNECTION}" ]]
+}
+
+__detect_ssh &>/dev/null && PROMPT_IS_SSH=1 || PROMPT_IS_SSH=0
+
+# ------- ( PROMPT HOOK ) ------------------------------------------------------
+
+precmd_prompt() {
+    local last_exit=$?
+
+    # Lambda: green if success, red otherwise
+    local lambda
+    if (( last_exit == 0 )); then
+        lambda="%F{green}λ%f"
+    else
+        lambda="%F{red}λ%f"
+    fi
+
+    # User: red+bold for root, default otherwise
+    local user_part
+    if (( EUID == 0 )); then
+        user_part="%B%F{red}%n%f%b"
+    else
+        user_part="%F{7}%n%f"
+    fi
+
+    # Hostname: blue+bold if remote, default if local
+    local host_part
+    if (( PROMPT_IS_SSH )); then
+        host_part="%B%F{blue}%m%f%b"
+    else
+        host_part="%F{7}%m%f"
+    fi
+
+    # Directory: red+bold if not writable, default otherwise
+    local dir_part
+    if [[ -w "${PWD}" ]]; then
+        dir_part="%F{7}%~%f"
+    else
+        dir_part="%B%F{red}%~%f%b"
+    fi
+
+    # Assemble prompt: (user@hostname) (~/path) λ
+    PROMPT="%F{7}(%f${user_part}%F{7}@%f${host_part}%F{7}) (%f${dir_part}%F{7})%f ${lambda} "
+}
+
+# Register hook
+autoload -Uz add-zsh-hook
+add-zsh-hook precmd precmd_prompt
