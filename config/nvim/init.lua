@@ -770,7 +770,7 @@ require("lazy").setup({
 
 	{
 		"mjhika/alabastard.nvim",
-		dir = "~/git/personal/alabastard",
+		dir = "~/workspace/personal/alabastard",
 		priority = 1000,
 		config = function()
 			require("alabastard").setup()
