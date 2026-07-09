@@ -1,0 +1,23 @@
+# dot files manifest — consumed by ./dot
+# format: <repo-path> <target relative to $HOME> [os filter: darwin,linux,freebsd]
+# lines starting with # and blank lines are ignored
+
+dotzshenv        .zshenv
+dotzshrc         .zshrc
+dotzsh_prompt    .zsh_prompt
+dotbashrc        .bashrc
+dotbash_prompt   .bash_prompt
+dotsh_prompt     .sh_prompt
+dotvimrc         .vimrc
+dotgitconfig     .gitconfig
+
+config/nvim      .config/nvim
+config/tmux      .config/tmux
+config/mise      .config/mise
+config/clojure   .config/clojure
+config/clj-kondo .config/clj-kondo
+config/iex       .config/iex
+
+config/ghostty   .config/ghostty   darwin,linux
+config/aerospace .config/aerospace darwin
+config/karabiner .config/karabiner darwin
