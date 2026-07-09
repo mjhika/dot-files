@@ -1,0 +1,30 @@
+# Sourced by every zsh: login, interactive, scripts, and `ssh host 'cmd'`.
+# Keep it lean and silent — env vars and static PATH entries only; anything
+# that forks, prints, or is interactive-only belongs in .zshrc.
+
+# -- ( XDG + CORE ENV ) ---------------------------------------------------------
+
+export XDG_CONFIG_HOME="$HOME/.config"
+export XDG_DATA_HOME="$HOME/.local/share"
+export XDG_STATE_HOME="$HOME/.local/state"
+export XDG_CACHE_HOME="$HOME/.cache"
+
+export EDITOR="nvim"
+
+# -- ( TOOL ENV ) ---------------------------------------------------------------
+
+export GOPRIVATE="github.com/mjhika,github.com/EVIRTSHEALTH"
+export BAT_THEME="ansi"
+export DOOMDIR="$XDG_CONFIG_HOME/doom"
+
+# -- ( PATH ) ---------------------------------------------------------------------
+
+typeset -U path # zsh dedupes the tied array
+
+[[ -d /opt/homebrew/bin ]] && path=(/opt/homebrew/bin /opt/homebrew/sbin $path)
+[[ -d /home/linuxbrew/.linuxbrew/bin ]] && path=(/home/linuxbrew/.linuxbrew/bin /home/linuxbrew/.linuxbrew/sbin $path)
+
+# mise shims make managed tools (go, node, clj, ...) resolvable everywhere,
+# including non-interactive shells; the `mise activate` hook in .zshrc swaps
+# in the real bin dirs per directory at prompt time
+path=("$XDG_DATA_HOME/mise/shims" "$HOME/go/bin" "$HOME/.local/bin" $path)
