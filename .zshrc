@@ -3,6 +3,9 @@ if ! [[ $(command -v brew help) ]]; then
   [[ -f /home/linuxbrew/.linuxbrew/bin/brew ]] && eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
 fi
 
+# activate mise
+eval "$(mise activate zsh)"
+
 add_to_path() {
   local usage="Usage: modify_path [-a|-p] <directory>"
   local action=""
@@ -141,6 +144,3 @@ alias nmux='tmux new -A -s $(basename $(pwd) | tr . _)'
 if [[ $(command -v fzf) ]]; then
   eval "$(fzf --zsh)"
 fi
-
-# activate mise
-eval "$(mise activate zsh)"
