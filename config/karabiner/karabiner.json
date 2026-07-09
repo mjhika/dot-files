@@ -173,25 +173,41 @@
             "virtual_hid_keyboard": { "keyboard_type_v2": "ansi" }
         },
         {
-            "devices": [
-                {
-                    "identifiers": { "is_keyboard": true },
-                    "simple_modifications": [
-                        {
-                            "from": { "key_code": "caps_lock" },
-                            "to": [{ "key_code": "left_control" }]
-                        },
-                        {
-                            "from": { "key_code": "escape" },
-                            "to": [{ "key_code": "caps_lock" }]
-                        },
-                        {
-                            "from": { "key_code": "left_control" },
-                            "to": [{ "key_code": "escape" }]
-                        }
-                    ]
-                }
-            ],
+            "complex_modifications": {
+                "rules": [
+                    {
+                        "description": "L+R Shift together -> toggle Caps Lock",
+                        "manipulators": [
+                            {
+                                "from": {
+                                    "modifiers": { "optional": ["any"] },
+                                    "simultaneous": [
+                                        { "key_code": "left_shift" },
+                                        { "key_code": "right_shift" }
+                                    ],
+                                    "simultaneous_options": { "key_down_order": "insensitive" }
+                                },
+                                "to": [{ "key_code": "caps_lock" }],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
+                        "description": "Caps Lock -> Escape (tap) / Control (hold)",
+                        "manipulators": [
+                            {
+                                "from": {
+                                    "key_code": "caps_lock",
+                                    "modifiers": { "optional": ["any"] }
+                                },
+                                "to": [{ "key_code": "left_control" }],
+                                "to_if_alone": [{ "key_code": "escape" }],
+                                "type": "basic"
+                            }
+                        ]
+                    }
+                ]
+            },
             "name": "QWERTY",
             "selected": true,
             "virtual_hid_keyboard": { "keyboard_type_v2": "ansi" }
