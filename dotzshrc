@@ -1,146 +1,119 @@
-if ! [[ $(command -v brew help) ]]; then
-  [[ -f /opt/homebrew/bin/brew ]] && eval $(/opt/homebrew/bin/brew shellenv)
-  [[ -f /home/linuxbrew/.linuxbrew/bin/brew ]] && eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
-fi
-
-# activate mise
-eval "$(mise activate zsh)"
-
-add_to_path() {
-  local usage="Usage: modify_path [-a|-p] <directory>"
-  local action=""
-  local dir=""
-
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-      -a|--append)
-        action="append"
-        shift
-        ;;
-      -p|--prepend)
-        action="prepend"
-        shift
-        ;;
-      -*)
-        echo "Error: Unknown opt $1" >&2
-        echo "$usage" >&2
-        return 1
-        ;;
-      *)
-        if [[ -z "$dir" ]]; then
-          dir="$1"
-          shift
-        else
-          echo "Error: Too many args" >&2
-          echo "$usage" >&2
-          return 1
-        fi
-        ;;
-    esac
-  done
-
-  if [[ -z "$action" || -z "$dir" ]]; then
-    echo "Error: Missing required" >&2
-    echo "$usage" >&2
-    return 1
-  fi
-
-  dir=$(realpath "$dir")
-
-  if [[ ":$PATH:" == *":$dir:"* ]]; then
-    return 0
-  fi
-
-  case "$action" in
-    append)
-      path+=("$dir")
-      ;;
-    prepend)
-      path=("$dir" $path)
-      ;;
-  esac
-  export PATH
-}
-
-add_to_path -p $HOME/.local/bin
-
-if [[ $(command -v go) ]]; then
-  add_to_path -p $HOME/go/bin
-fi
+# -- ( XDG + CORE ENV ) -------------------------------------------------------
 
 export XDG_CONFIG_HOME="$HOME/.config"
 export XDG_DATA_HOME="$HOME/.local/share"
 export XDG_STATE_HOME="$HOME/.local/state"
 export XDG_CACHE_HOME="$HOME/.cache"
 
-export EDITOR="vim"
+export EDITOR="nvim"
 
+# -- ( PATH ) -----------------------------------------------------------------
+
+typeset -U path # zsh dedupes the tied array; no manual "already in PATH" check
+
+if (( ! $+commands[brew] )); then
+  [[ -x /opt/homebrew/bin/brew ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
+  [[ -x /home/linuxbrew/.linuxbrew/bin/brew ]] && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+fi
+
+# Shims make mise tools resolvable right here at parse time and in
+# non-interactive shells (ssh host 'cmd'); `activate` only registers a precmd
+# hook, so on its own nothing is on PATH until after this file finishes.
+path=("$XDG_DATA_HOME/mise/shims" $path)
+(( $+commands[mise] )) && eval "$(mise activate zsh)"
+
+path=("$HOME/.local/bin" "$HOME/go/bin" $path)
+
+# -- ( TOOL ENV ) -------------------------------------------------------------
+
+export GOPRIVATE="github.com/mjhika,github.com/EVIRTSHEALTH"
+export BAT_THEME="ansi"
+export DOOMDIR="$XDG_CONFIG_HOME/doom"
+
+# -- ( HISTORY ) --------------------------------------------------------------
+
+[[ -d "$XDG_DATA_HOME" ]] || mkdir -p "$XDG_DATA_HOME"
 HISTFILE="$XDG_DATA_HOME/.zsh_history"
 HISTSIZE=100000
 SAVEHIST=100000
+setopt inc_append_history # write entries as commands run, not at shell exit
+setopt hist_ignore_dups   # skip consecutive duplicates
+setopt hist_ignore_space  # ' cmd' stays out of history
+setopt extended_history   # keep timestamps
 
-# ------- ( CUSTOM PROMPT ) ----------------------------------------------------
+# -- ( COMPLETION ) -----------------------------------------------------------
 
-if [[ -f ~/.zsh_prompt ]] then;
+[[ -n "$HOMEBREW_PREFIX" ]] && fpath+=("$HOMEBREW_PREFIX/share/zsh/site-functions")
+
+autoload -Uz compinit
+# regenerate the dump at most once a day; -C trusts the cache otherwise
+if [[ -n "$XDG_CACHE_HOME"/.zcompdump(#qN.mh-24) ]]; then
+  compinit -C -d "$XDG_CACHE_HOME/.zcompdump"
+else
+  mkdir -p "$XDG_CACHE_HOME"
+  compinit -d "$XDG_CACHE_HOME/.zcompdump"
+fi
+
+# -- ( CUSTOM PROMPT ) --------------------------------------------------------
+
+if [[ -f ~/.zsh_prompt ]]; then
   source ~/.zsh_prompt
 else
   PROMPT="(%n@%m) (%~) λ "
 fi
 
-# ------- ( UX CONFIG ) --------------------------------------------------------
+# -- ( UX CONFIG ) ------------------------------------------------------------
 
-if [[ $(command -v direnv version) ]]; then
-  eval "$(direnv hook zsh)"
-fi
-
-if [[ $(command -v go) ]]; then
-  export GOBIN="$(go env GOPATH)/bin"
-  export GOPRIVATE="github.com/mjhika,github.com/EVIRTSHEALTH"
-fi
-export BAT_THEME="ansi"
-export DOOMDIR="$XDG_CONFIG_HOME/doom"
-
-# because the zsh will set ZLE to vi mode with EDITOR set to vi, vim, nvim then
-# to retain the default emacs experience we manually overide bindkey emacs mode
+# zsh flips ZLE to vi mode when EDITOR is vi/vim/nvim; keep emacs bindings
 bindkey -e
 
-# alias ls
-alias ls='ls --color=auto -hvF'
+(( $+commands[direnv] )) && eval "$(direnv hook zsh)"
+(( $+commands[fzf] )) && eval "$(fzf --zsh)"
+
+# -- ( ALIASES ) --------------------------------------------------------------
+
+# GNU ls sorts versions naturally with -v; BSD ls repurposes -v, so probe.
+# --color needs macOS >= 13 / FreeBSD >= 13.
+if ls --version &>/dev/null; then
+  alias ls='ls --color=auto -hvF'
+else
+  alias ls='ls --color=auto -hF'
+fi
 alias ll='ls -l'
 alias la='ls -lA'
 alias llinks='ll `find . -maxdepth 1 -type l -print`'
 
-# alias mv
 alias mv='mv -i'
+
+alias grep='grep --color=auto'
+
+# BSD diff (macOS) has no --color; probe the capability instead of the platform
+if command diff --color=auto /dev/null /dev/null &>/dev/null; then
+  alias diff='diff --color=auto'
+fi
 
 # tree common ignores
 alias tre="tree -I node_modules -I .cpcache -I .cache -I .git"
 
-# alias for lazygit
 alias lg="lazygit"
 
-# aliases for ip addresses
-alias ip='ip -c=auto'
-alias localip='ifconfig | grep -E "\d+\.\d+\.\d+\.\d+"'
-flushDNS() {
-  if [[ $(uname) == "Darwin" ]]; then
-    sudo killall -HUP mDNSResponder
-  fi
-  if [[ $(uname) == "Linux" ]]; then
-    sudo systemd-resolve --flush-caches
-  fi
-}
-
-# alias for grep
-alias grep='grep --color=auto'
-
-# alias for diff
-alias diff='diff --color=auto'
-
-# new tmux session
+# new tmux session named for the current directory
 alias nmux='tmux new -A -s $(basename $(pwd) | tr . _)'
 
-# add fzf shell integration
-if [[ $(command -v fzf) ]]; then
-  eval "$(fzf --zsh)"
-fi
+# -- ( PLATFORM ) -------------------------------------------------------------
+
+case "$OSTYPE" in
+  darwin*)
+    alias localip='ifconfig | grep -oE "([0-9]{1,3}\.){3}[0-9]{1,3}"'
+    flushDNS() { sudo killall -HUP mDNSResponder; }
+    ;;
+  linux*)
+    alias ip='ip -c=auto'
+    alias localip='ip -br -4 addr show'
+    flushDNS() { sudo resolvectl flush-caches; }
+    ;;
+  freebsd*)
+    alias localip='ifconfig | grep -oE "([0-9]{1,3}\.){3}[0-9]{1,3}"'
+    flushDNS() { sudo service local_unbound restart; }
+    ;;
+esac
