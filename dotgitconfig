@@ -1,0 +1,21 @@
+[pull]
+        rebase = true
+
+[includeIf "gitdir:~/Projects/work/"]
+        path = ~/Projects/work/.gitconfig
+[includeIf "gitdir:~/Projects/pers/"]
+        path = ~/Projects/pers/.gitconfig
+
+[url "ssh://git@github.com/"]
+        insteadOf = https://github.com/
+
+[alias]
+        lol = log --oneline --decorate
+        graph = log --oneline --graph --decorate
+
+[grep]
+        lineNumber = true
+        patternType = perl
+
+[init]
+        defaultBranch = master
