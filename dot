@@ -4,10 +4,14 @@
 # =============================================================================
 #
 # Usage:
-#   ./dot install [-m symlink|copy] [-n] [-f]   deploy manifest entries to $HOME
-#   ./dot check                                 report deployment state per entry
-#   ./dot doctor                                healthcheck tools + environment
+#   ./dot install [-p PROFILE] [-m symlink|copy] [-n] [-f]
+#   ./dot check   [-p PROFILE]
+#   ./dot doctor  [-p PROFILE]
 #   ./dot help
+#
+# Profiles:
+#   full     everything for a dev machine (default)
+#   server   quick-poke kit: bashrc, vimrc, tmux.conf
 #
 # Options (install):
 #   -m METHOD   "symlink" (default) or "copy"
@@ -17,6 +21,10 @@
 # New machine:
 #   git clone https://github.com/mjhika/dot-files && cd dot-files && ./dot install
 #   ./dot doctor
+#
+# Server:
+#   git clone --depth 1 https://github.com/mjhika/dot-files && cd dot-files
+#   ./dot install -p server
 #
 # =============================================================================
 
@@ -32,7 +40,7 @@ case "$(uname -s)" in
     *)       OS=other ;;
 esac
 
-# ------- ( OUTPUT HELPERS ) ---------------------------------------------------
+# -- ( OUTPUT HELPERS ) -------------------------------------------------------
 
 if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
     C_BLU='\033[1;34m'; C_YEL='\033[1;33m'; C_RED='\033[1;31m'; C_GRN='\033[1;32m'; C_OFF='\033[0m'
@@ -52,27 +60,46 @@ usage() {
 
 timestamp() { date +%Y%m%d_%H%M%S; }
 
-# ------- ( MANIFEST ITERATION ) -------------------------------------------------
-# Calls "$1 <repo-path> <target>" for every manifest entry matching this OS.
+# -- ( MANIFEST ITERATION ) ---------------------------------------------------
+# Calls "$1 <repo-path> <target>" for every manifest entry matching this OS
+# and the active profile. Columns: <src> <dst> [os] [profiles]
+#   os:       "any" (or omitted) matches everywhere, else comma list
+#   profiles: comma list, omitted means "full"
+
+PROFILE=full
+
+set_profile() {
+    case "$1" in
+        full|server) PROFILE="$1" ;;
+        *) err "invalid profile: $1 (use 'full' or 'server')"; exit 1 ;;
+    esac
+}
 
 each_entry() {
-    while read -r _src _dst _osf _junk || [ -n "${_src:-}" ]; do
+    while read -r _src _dst _osf _prof _junk || [ -n "${_src:-}" ]; do
         case "${_src:-}" in ''|'#'*) continue ;; esac
         if [ -z "${_dst:-}" ]; then
             err "malformed manifest line: $_src"
             continue
         fi
-        if [ -n "${_osf:-}" ]; then
-            case ",$_osf," in
-                *",$OS,"*) ;;
-                *) continue ;;
-            esac
-        fi
+        case "${_osf:-any}" in
+            any) ;;
+            *)
+                case ",$_osf," in
+                    *",$OS,"*) ;;
+                    *) continue ;;
+                esac
+                ;;
+        esac
+        case ",${_prof:-full}," in
+            *",$PROFILE,"*) ;;
+            *) continue ;;
+        esac
         "$1" "$_src" "$_dst"
     done < "$MANIFEST"
 }
 
-# ------- ( INSTALL ) ------------------------------------------------------------
+# -- ( INSTALL ) --------------------------------------------------------------
 
 METHOD=symlink
 DRY=0
@@ -133,8 +160,9 @@ install_entry() {
 }
 
 do_install() {
-    while getopts "m:nf" _opt; do
+    while getopts "m:nfp:" _opt; do
         case "$_opt" in
+            p) set_profile "$OPTARG" ;;
             m)
                 case "$OPTARG" in
                     symlink|copy) METHOD="$OPTARG" ;;
@@ -147,7 +175,7 @@ do_install() {
         esac
     done
 
-    info "os: $OS  method: $METHOD$( [ "$DRY" -eq 1 ] && printf ' (dry run)' )"
+    info "os: $OS  profile: $PROFILE  method: $METHOD$( [ "$DRY" -eq 1 ] && printf ' (dry run)' )"
     echo ""
     each_entry install_entry
 
@@ -171,7 +199,7 @@ do_install() {
     ok "done"
 }
 
-# ------- ( CHECK ) --------------------------------------------------------------
+# -- ( CHECK ) ----------------------------------------------------------------
 
 CHECK_FAIL=0
 
@@ -204,7 +232,14 @@ check_entry() {
 }
 
 do_check() {
-    info "checking deployment against manifest (os: $OS)"
+    while getopts "p:" _opt; do
+        case "$_opt" in
+            p) set_profile "$OPTARG" ;;
+            ?) usage; exit 1 ;;
+        esac
+    done
+
+    info "checking deployment against manifest (os: $OS, profile: $PROFILE)"
     echo ""
     each_entry check_entry
     echo ""
@@ -215,7 +250,7 @@ do_check() {
     ok "everything deployed"
 }
 
-# ------- ( DOCTOR ) -------------------------------------------------------------
+# -- ( DOCTOR ) ---------------------------------------------------------------
 
 DOC_REQ=0
 DOC_OPT=0
@@ -268,14 +303,47 @@ path_index() {
     return 1
 }
 
+doctor_summary() {
+    echo ""
+    if [ "$DOC_REQ" -eq 1 ]; then
+        err "required pieces missing"
+        info "deployment state: ./dot check${PROFILE:+ -p $PROFILE}"
+        exit 1
+    elif [ "$DOC_OPT" -eq 1 ]; then
+        warn "healthy, with optional pieces missing"
+    else
+        ok "all healthy"
+    fi
+    info "deployment state: ./dot check${PROFILE:+ -p $PROFILE}"
+}
+
 do_doctor() {
+    while getopts "p:" _opt; do
+        case "$_opt" in
+            p) set_profile "$OPTARG" ;;
+            ?) usage; exit 1 ;;
+        esac
+    done
+
+    # server baseline: just what the server profile's configs need
+    if [ "$PROFILE" = server ]; then
+        head_ "== server baseline =="
+        req bash
+        req git
+        req_any "curl wget fetch"
+        req tmux
+        req_any "vi vim nvim"
+        doctor_summary
+        return 0
+    fi
+
     _data="${XDG_DATA_HOME:-$HOME/.local/share}"
     _shims="$_data/mise/shims"
 
     head_ "== core =="
     req zsh
     req git
-    req_any "curl wget"
+    req_any "curl wget fetch"
     req mise
     req tmux
     req_any "nvim vim"
@@ -355,20 +423,10 @@ do_doctor() {
         *) warn "login shell is '${SHELL:-unset}', not zsh — chsh -s \$(command -v zsh)"; DOC_OPT=1 ;;
     esac
 
-    echo ""
-    if [ "$DOC_REQ" -eq 1 ]; then
-        err "required pieces missing"
-        info "deployment state: ./dot check"
-        exit 1
-    elif [ "$DOC_OPT" -eq 1 ]; then
-        warn "healthy, with optional pieces missing"
-    else
-        ok "all healthy"
-    fi
-    info "deployment state: ./dot check"
+    doctor_summary
 }
 
-# ------- ( DISPATCH ) -----------------------------------------------------------
+# -- ( DISPATCH ) -------------------------------------------------------------
 
 [ -f "$MANIFEST" ] || { err "manifest not found: $MANIFEST"; exit 1; }
 
@@ -377,8 +435,8 @@ _cmd="${1:-help}"
 
 case "$_cmd" in
     install)      do_install "$@" ;;
-    check)        do_check ;;
-    doctor)       do_doctor ;;
+    check)        do_check "$@" ;;
+    doctor)       do_doctor "$@" ;;
     help|-h|--help) usage ;;
     *)            err "unknown command: $_cmd"; usage; exit 1 ;;
 esac

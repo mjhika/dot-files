@@ -15,10 +15,6 @@ set mouse=a
 " Don't show the mode, since it's already in the status line
 set noshowmode
 
-" Sync clipboard between OS and Vim.
-" Uncomment if you want your OS clipboard to remain independent.
-" set clipboard=unnamedplus
-
 " Enable break indent
 set breakindent
 

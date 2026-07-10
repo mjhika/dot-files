@@ -1,7 +1,111 @@
-# ------- ( CUSTOM PROMPT ) ----------------------------------------------------
+# Bash config: prompt, aliases, and QoL only; this should be bloat free.
 
-if [[ -f ~/.bash_prompt ]]; then
-  source ~/.bash_prompt
+# interactive shells only — scp/rsync and `ssh host cmd` stop here
+[[ $- == *i* ]] || return
+
+# -- ( QOL ) ------------------------------------------------------------------
+
+shopt -s histappend    # append to the history file on exit, don't clobber it
+shopt -s checkwinsize  # re-check LINES/COLUMNS after each command
+HISTCONTROL=ignoreboth # skip consecutive duplicates and ' cmd'
+HISTSIZE=100000
+HISTFILESIZE=100000
+
+for _e in nvim vim vi; do
+  command -v "$_e" >/dev/null 2>&1 && { export EDITOR="$_e"; break; }
+done
+unset _e
+
+# -- ( PROMPT ) ---------------------------------------------------------------
+# Same as the zsh prompt: (user@hostname) (~/path) λ
+# λ green/red by exit code, root red+bold, SSH host blue+bold, non-writable
+# dir red+bold. Colors via tput (portable), wrapped in \[ \] so bash counts
+# the prompt length right.
+
+if [[ $(tput colors 2>/dev/null || echo 0) -ge 8 ]]; then
+  _R="\[$(tput sgr0)\]"
+  _B="\[$(tput bold)\]"
+  _RED="\[$(tput setaf 1)\]"
+  _GRN="\[$(tput setaf 2)\]"
+  _BLU="\[$(tput setaf 4)\]"
+  _GRY="\[$(tput setaf 7)\]"
 else
-  PS1="(\u@\h) (\w) λ "
+  _R='' _B='' _RED='' _GRN='' _BLU='' _GRY=''
 fi
+
+# user and host can't change mid-session — compute their segments once;
+# SSH detection is env-only: this config's home is the remote end anyway
+if [[ $EUID -eq 0 ]]; then
+  _prompt_user="${_RED}${_B}\u${_R}"
+else
+  _prompt_user="${_GRY}\u${_R}"
+fi
+if [[ -n "${SSH_CLIENT:-}${SSH_TTY:-}${SSH_CONNECTION:-}" ]]; then
+  _prompt_host="${_BLU}${_B}\h${_R}"
+else
+  _prompt_host="${_GRY}\h${_R}"
+fi
+
+__build_prompt() {
+  local last_exit=$?
+  local lambda dir
+  if [[ $last_exit -eq 0 ]]; then
+    lambda="${_GRN}λ${_R}"
+  else
+    lambda="${_RED}λ${_R}"
+  fi
+  if [[ -w $PWD ]]; then
+    dir="${_GRY}\w${_R}"
+  else
+    dir="${_RED}${_B}\w${_R}"
+  fi
+  PS1="${_GRY}(${_R}${_prompt_user}${_GRY}@${_R}${_prompt_host}${_GRY}) (${_R}${dir}${_GRY})${_R} ${lambda} "
+}
+PROMPT_COMMAND="__build_prompt${PROMPT_COMMAND:+;$PROMPT_COMMAND}"
+
+# -- ( ALIASES ) --------------------------------------------------------------
+# GNU ls sorts versions naturally with -v; BSD ls repurposes -v, so probe.
+# --color needs macOS >= 13 / FreeBSD >= 13.
+if ls --version &>/dev/null; then
+  alias ls='ls --color=auto -hvF'
+else
+  alias ls='ls --color=auto -hF'
+fi
+alias ll='ls -l'
+alias la='ls -lA'
+alias llinks='ll `find . -maxdepth 1 -type l -print`'
+
+alias mv='mv -i'
+
+alias grep='grep --color=auto'
+
+# BSD diff (macOS) has no --color; probe the capability instead of the platform
+if command diff --color=auto /dev/null /dev/null &>/dev/null; then
+  alias diff='diff --color=auto'
+fi
+
+# tree common ignores
+alias tre="tree -I node_modules -I .cpcache -I .cache -I .git"
+
+alias lg="lazygit"
+
+# new tmux session named for the current directory
+alias nmux='tmux new -A -s $(basename $(pwd) | tr . _)'
+
+# -- ( PLATFORM ) -------------------------------------------------------------
+
+case "$OSTYPE" in
+  darwin*)
+    alias localip='ifconfig | grep -oE "([0-9]{1,3}\.){3}[0-9]{1,3}"'
+    flushDNS() { sudo killall -HUP mDNSResponder; }
+    ;;
+  linux*)
+    alias ip='ip -c=auto'
+    alias localip='ip -br -4 addr show'
+    flushDNS() { sudo resolvectl flush-caches; }
+    ;;
+  freebsd*)
+    alias localip='ifconfig | grep -oE "([0-9]{1,3}\.){3}[0-9]{1,3}"'
+    flushDNS() { sudo service local_unbound restart; }
+    ;;
+esac

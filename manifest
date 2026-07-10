@@ -1,14 +1,14 @@
 # dot files manifest — consumed by ./dot
-# format: <repo-path> <target relative to $HOME> [os filter: darwin,linux,freebsd]
+# format: <repo-path> <target relative to $HOME> [os] [profiles]
+#   os:       "any" or comma list of darwin,linux,freebsd  (omitted = any)
+#   profiles: comma list of full,server                    (omitted = full)
 # lines starting with # and blank lines are ignored
 
 dotzshenv        .zshenv
 dotzshrc         .zshrc
 dotzsh_prompt    .zsh_prompt
-dotbashrc        .bashrc
-dotbash_prompt   .bash_prompt
-dotsh_prompt     .sh_prompt
-dotvimrc         .vimrc
+dotbashrc        .bashrc           any          full,server
+dotvimrc         .vimrc            any          full,server
 dotgitconfig     .gitconfig
 
 config/nvim      .config/nvim
@@ -17,6 +17,10 @@ config/mise      .config/mise
 config/clojure   .config/clojure
 config/clj-kondo .config/clj-kondo
 config/iex       .config/iex
+
+# servers often run tmux < 3.1, which only reads ~/.tmux.conf (same file,
+# different target; the full profile uses the XDG dir above instead)
+config/tmux/tmux.conf .tmux.conf   any          server
 
 config/ghostty   .config/ghostty   darwin,linux
 config/aerospace .config/aerospace darwin
