@@ -1,4 +1,4 @@
-# -- ( ENV FALLBACKS ) ----------------------------------------------------------
+# -- ( ENV FALLBACKS ) --------------------------------------------------------
 
 # ~/.zshenv owns the environment; these defaults keep a host where it isn't
 # deployed yet working
