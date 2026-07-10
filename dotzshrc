@@ -117,3 +117,28 @@ case "$OSTYPE" in
     flushDNS() { sudo service local_unbound restart; }
     ;;
 esac
+
+# -- ( ELEVATION ) --------------------------------------------------------------
+
+# root login shell that keeps SSH_CONNECTION, so the elevated prompt still
+# knows the session is remote. util-linux su (Linux) can whitelist env vars
+# through a login; BSD su (macOS/FreeBSD) cannot, so sudo -i provides the
+# login shell there instead.
+root() {
+  if command -v sudo >/dev/null 2>&1; then
+    case "$OSTYPE" in
+      linux*) sudo --preserve-env=SSH_CONNECTION su -w SSH_CONNECTION - ;;
+      *)      sudo --preserve-env=SSH_CONNECTION -i ;;
+    esac
+  elif command -v doas >/dev/null 2>&1; then
+    case "$OSTYPE" in
+      # doas scrubs the env before su runs, so re-inject the var for su
+      linux*) doas env "SSH_CONNECTION=${SSH_CONNECTION:-}" su -w SSH_CONNECTION - ;;
+      # BSD su can't whitelist env: needs `keepenv { SSH_CONNECTION }` in doas.conf
+      *)      doas su - ;;
+    esac
+  else
+    echo "root: neither sudo nor doas found" >&2
+    return 1
+  fi
+}
