@@ -1,3 +1,24 @@
+-- (Section 0: Bootstrap guards) -----------------------------------------------
+do
+	-- vim.pack, vim.lsp.config/enable, and the treesitter APIs used below all
+	-- require nvim 0.12+
+	if vim.fn.has("nvim-0.12") == 0 then
+		error("This config requires Neovim 0.12+ (uses vim.pack)")
+	end
+
+	-- git: vim.pack; make/cc: telescope-fzf-native, LuaSnip, treesitter parsers;
+	-- rg: telescope live-grep
+	local missing = {}
+	for _, tool in ipairs({ "git", "make", "cc", "rg" }) do
+		if vim.fn.executable(tool) ~= 1 then
+			table.insert(missing, tool)
+		end
+	end
+	if #missing > 0 then
+		vim.notify("Missing tools (some plugins will degrade): " .. table.concat(missing, ", "), vim.log.levels.WARN)
+	end
+end
+
 -- (Section 1: Options) -------------------------------------------------------
 -- `:help lua-guide` or [web guide](https://neovim.io/doc/user/lua-guide.html)
 
@@ -165,7 +186,7 @@ do
 			if output == "" then
 				output = "No output from build command."
 			end
-			vim.notify(("Build failed for %s:\n%s"):fromat(name, output), vim.log.levels.ERROR)
+			vim.notify(("Build failed for %s:\n%s"):format(name, output), vim.log.levels.ERROR)
 		end
 	end
 
@@ -566,15 +587,15 @@ do
 	})
 
 	-- Automatically install LSPs and related tools to stdpath for Neovim
-	-- new machine needs: curl, unzip, python3, go
+	-- new machine needs: curl, unzip, python3, go, npm
 	require("mason").setup({})
 
 	local ensure_installed = vim.tbl_keys(servers or {})
 	vim.list_extend(ensure_installed, {
-		beautysh,
-		jq,
-		stylua,
-		prettierd,
+		"beautysh",
+		"jq",
+		"stylua",
+		"prettierd",
 	})
 
 	require("mason-tool-installer").setup({ ensure_installed = ensure_installed })
