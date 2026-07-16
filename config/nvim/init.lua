@@ -512,25 +512,11 @@ do
 	})
 
 	local servers = {
-		bashls = {
-			-- on_init = function(client)
-			--   client.server_capabilities.documentFormattingProvider = false -- Disalbe formatting (formatting is done by beautysh)
-			-- end,
-			-- settings = {
-			--   Shell = {
-			--     format = { enable = false }, -- Disable formatting (formatting is done by beautysh)
-			--   },
-			-- },
-		},
-		beautysh = {},
+		bashls = {},
 		clangd = {},
-		["clj-kondo"] = {},
 		clojure_lsp = {},
 		expert = {},
 		gopls = {},
-		jq = {},
-		zls = {},
-		stylua = {}, -- Used to format Lua code
 
 		-- Special Lua Config, as recommended by neovim help docs
 		lua_ls = {
@@ -580,18 +566,15 @@ do
 	})
 
 	-- Automatically install LSPs and related tools to stdpath for Neovim
+	-- new machine needs: curl, unzip, python3, go
 	require("mason").setup({})
 
-	-- Ensure the servers and tools above are installed
-	--
-	-- To check the current status of installed tools and/or manually install
-	-- other tools, you can run
-	--    :Mason
-	--
-	-- You can press `g?` for help in this menu.
 	local ensure_installed = vim.tbl_keys(servers or {})
 	vim.list_extend(ensure_installed, {
-		-- You can add other tools here that you want Mason to install
+		beautysh,
+		jq,
+		stylua,
+		prettierd,
 	})
 
 	require("mason-tool-installer").setup({ ensure_installed = ensure_installed })
@@ -616,6 +599,8 @@ do
 				elixir = true,
 				go = true,
 				lua = true,
+				javascript = true,
+				markdown = true,
 			}
 			if enabled_filetypes[vim.bo[bufnr].filetype] then
 				return { timeout_ms = 500 }
@@ -629,10 +614,10 @@ do
 		-- You can also specify external formatters in here.
 		formatters_by_ft = {
 			c = { "clang_format" },
-			clojure = { "clj-kondo" },
-			go = { "gofmt", "goimports", "golangci-lint" },
+			go = { "gofmt", "goimports" },
 			json = { "jq" },
-			javascript = { "prettierd", "prettier", stop_after_first = true },
+			javascript = { "prettierd" },
+			markdown = { "prettierd" },
 		},
 	})
 
