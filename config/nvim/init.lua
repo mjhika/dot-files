@@ -7,9 +7,9 @@ do
 	end
 
 	-- git: vim.pack; make/cc: telescope-fzf-native, LuaSnip, treesitter parsers;
-	-- rg: telescope live-grep
+	-- rg: telescope live-grep; tree-sitter-cli: tree-sitter
 	local missing = {}
-	for _, tool in ipairs({ "git", "make", "cc", "rg" }) do
+	for _, tool in ipairs({ "git", "make", "cc", "rg", "tree-sitter" }) do
 		if vim.fn.executable(tool) ~= 1 then
 			table.insert(missing, tool)
 		end
@@ -228,7 +228,7 @@ end
 -- (Section 4: UI, core UX plugins) -------------------------------------------
 do
 	-- Detect tabstop and shiftwidth automatically
-	vim.pack.add({ gh("NMAC427/guess-indent.nvim") })
+	vim.pack.add({ gh("nmac427/guess-indent.nvim") })
 	require("guess-indent").setup({})
 
 	-- Git signs in the gutter and more. See `:help gitsigns`
