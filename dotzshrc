@@ -100,8 +100,6 @@ alias lg="lazygit"
 # new tmux session named for the current directory
 alias nmux='tmux new -A -s $(basename $(pwd) | tr . _)'
 
-# -- ( PLATFORM ) -------------------------------------------------------------
-
 case "$OSTYPE" in
   darwin*)
     alias localip='ifconfig | grep -oE "([0-9]{1,3}\.){3}[0-9]{1,3}"'
@@ -118,7 +116,7 @@ case "$OSTYPE" in
     ;;
 esac
 
-# -- ( ELEVATION ) --------------------------------------------------------------
+# -- ( HELPERS ) --------------------------------------------------------------
 
 # root login shell that keeps SSH_CONNECTION, so the elevated prompt still
 # knows the session is remote. util-linux su (Linux) can whitelist env vars
@@ -140,5 +138,15 @@ root() {
   else
     echo "root: neither sudo nor doas found" >&2
     return 1
+  fi
+}
+
+save-latest() {
+  SAVE_FILE=./.latest-save
+  if [[ $# -eq 0 ]]; then
+    echo "awaiting input... ^D to exit"
+    cat > $SAVE_FILE
+  else
+    echo "$*" > $SAVE_FILE
   fi
 }
