@@ -621,6 +621,7 @@ do
 				go = true,
 				lua = true,
 				javascript = true,
+				typescript = true,
 				markdown = true,
 			}
 			if enabled_filetypes[vim.bo[bufnr].filetype] then
@@ -638,6 +639,7 @@ do
 			go = { "gofmt", "goimports" },
 			json = { "jq" },
 			javascript = { "prettierd" },
+			typescript = { "prettierd" },
 			markdown = { "prettierd" },
 		},
 	})
