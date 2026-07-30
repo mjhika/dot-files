@@ -110,7 +110,7 @@ case "$OSTYPE" in
     ;;
 esac
 
-# -- ( ELEVATION ) ----------------------------------------------------------------
+# -- ( ELEVATION ) ------------------------------------------------------------
 
 # root login shell that keeps SSH_CONNECTION, so the elevated prompt still
 # knows the session is remote. util-linux su (Linux) can whitelist env vars
@@ -134,3 +134,41 @@ root() {
     return 1
   fi
 }
+
+# -- ( HELPER ) ---------------------------------------------------------------
+
+add_github_keys() {
+  local user gh_user keys
+
+  if [ "$#" -ne 2 ]; then
+    echo "Usage: ${FUNCNAME[0]} <username> <github_username>" >&2
+    return 2
+  fi
+
+  if [ "$(id -u)" -ne 0 ]; then
+    echo "${FUNCNAME[0]}: run this as root" >&2
+    return 1
+  fi
+
+  user=$1
+  gh_user=$2
+  keys=$(mktemp)
+  trap 'rm -f "$keys"' RETURN
+
+  if ! curl -fsSL "https://github.com/$gh_user.keys" -o "$keys"; then
+    echo "${FUNCNAME[0]}: cannot get the keys for $gh_user" >&2
+    return 1
+  fi
+
+  if [ ! -s "$keys" ]; then
+    echo "${FUNCNAME[0]}: $gh_user has no public keys" >&2
+    return 1
+  fi
+
+  install -d -m 700 -o "$user" -g "$user" "/home/$user/.ssh" || return 1
+  install -m 600 -o "$user" -g "$user" "$keys" "/user/$user/.ssh/authorized_keys" || return 1
+
+  command -v restorecon >/dev/null && restorecon -R "/home/$user/.ssh"
+  return 0
+}
+
