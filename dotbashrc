@@ -172,7 +172,7 @@ add_github_keys() {
   fi
 
   $priv_cmd install -d -m 700 -o "$username" -g "$username" "/home/$username/.ssh" || return 1
-  $priv_cmd install -m 600 -o "$username" -g "$username" "$keys" "/username/$username/.ssh/authorized_keys" || return 1
+  $priv_cmd install -m 600 -o "$username" -g "$username" "$keys" "/home/$username/.ssh/authorized_keys" || return 1
 
   command -v restorecon >/dev/null && $priv_cmd restorecon -R "/home/$username/.ssh"
   return 0
