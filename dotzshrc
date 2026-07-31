@@ -152,15 +152,21 @@ save-latest() {
 }
 
 add_github_keys() {
-  local username gh_username keys
+  local priv_cmd username gh_username keys
 
   if [ "$#" -ne 2 ]; then
     echo "Usage: ${FUNCNAME[0]} <username> <github_username>" >&2
     return 2
   fi
 
-  if [ "$(id -u)" -ne 0 ]; then
-    echo "${FUNCNAME[0]}: run this as root" >&2
+  if [ "$EUID" -eq 0 ]; then
+    priv_cmd=""
+  elif command -v sudo > /dev/null 2>&1; then
+    priv_cmd="sudo"
+  elif command -v doas > /dev/null 2>&1; then
+    priv_cmd="doas"
+  else
+    echo "${FUNCNAME[0]}: root access required, but neither sudo nor doas is available" 1>&2
     return 1
   fi
 
@@ -179,9 +185,9 @@ add_github_keys() {
     return 1
   fi
 
-  install -d -m 700 -o "$username" -g "$username" "/home/$username/.ssh" || return 1
-  install -m 600 -o "$username" -g "$username" "$keys" "/home/$username/.ssh/authorized_keys" || return 1
+  $priv_cmd install -d -m 700 -o "$username" -g "$username" "/home/$username/.ssh" || return 1
+  $priv_cmd install -m 600 -o "$username" -g "$username" "$keys" "/home/$username/.ssh/authorized_keys" || return 1
 
-  command -v restorecon >/dev/null && restorecon -R "/home/$username/.ssh"
+  command -v restorecon >/dev/null && $priv_cmd restorecon -R "/home/$username/.ssh"
   return 0
 }
