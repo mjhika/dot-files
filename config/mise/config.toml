@@ -40,7 +40,7 @@ pi = "latest"
 
 # -- ( system packages ) ------------------------------------------------------
 [bootstrap.packages]
-# core, ./dot doctor, nvim (make, cc, unzip for mason)
+# fedora
 "dnf:git" = "latest"
 "dnf:zsh" = "latest"
 "dnf:curl" = "latest"
@@ -53,23 +53,49 @@ pi = "latest"
 "dnf:tree" = "latest"
 "dnf:rlwrap" = "latest"
 "dnf:util-linux-user" = "latest"
+"dnf:brave-origin" = "latest"
+"dnf:1password" = { os = "linux/x64" }
+
 # erlang build deps
 "dnf:autoconf" = "latest"
 "dnf:perl" = "latest"
 "dnf:ncurses-devel" = "latest"
 "dnf:openssl-devel" = "latest"
 
+# macos
 "brew:tree" = { os = "macos" }
 "brew:rlwrap" = { os = "macos" }
 
-# AeroSpace installs in the post-packages hook: its cask is only in
-# nikitabobko/tap, and mise needs Ruby 3 to read a tap cask.
-# adopt = true keeps an app that is already installed instead of replacing it
+# AeroSpace installs in the post-packages hook: its cask is only in nikitabobko/tap
 "brew-cask:ghostty" = { os = "macos", adopt = true }
 "brew-cask:karabiner-elements" = { os = "macos", adopt = true }
 
 [bootstrap.hooks]
-pre-packages = '[ "$(uname -s)" != Darwin ] || xcode-select -p >/dev/null 2>&1 || xcode-select --install'
+pre-packages = [
+  # macos: check for xcode cli
+  '[ "$(uname -s)" != Darwin ] || xcode-select -p >/dev/null 2>&1 || xcode-select --install',
+  # fedroa: add brave-origin, and 1password repos to dnf
+  '''
+  [ -r /etc/os-release ] && . /etc/os-release
+  [ "${ID:-}" = fedora ] || exit 0
+  if [ ! -f /etc/yum.repos.d/brave-browser.repo ]; then
+    sudo curl -fsSLo /etc/yum.repos.d/brave-browser.repo \
+      https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo
+  fi
+  if [ ! -f /etc/yum.repos.d/1password.repo ]; then
+    sudo rpm --import https://downloads.1password.com/linux/keys/1password.asc
+    printf '%s\n' \
+      '[1password]' \
+      'name=1Password Stable Channel' \
+      'baseurl=https://downloads.1password.com/linux/rpm/stable/$basearch' \
+      'enabled=1' \
+      'gpgcheck=1' \
+      'repo_gpgcheck=1' \
+      'gpgkey=https://downloads.1password.com/linux/keys/1password.asc' \
+      | sudo tee /etc/yum.repos.d/1password.repo >/dev/null
+  fi
+  ''',
+]
 post-packages = '[ "$(uname -s)" != Darwin ] || brew install --cask nikitabobko/tap/aerospace'
 
 # /bin/zsh exists on macOS and on Fedora (/bin -> /usr/bin)
