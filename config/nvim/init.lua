@@ -107,6 +107,11 @@ do
 
 	-- Disable the line wrapping
 	vim.o.wrap = false
+
+  -- Set up the default spacing
+  vim.o.expandtab = true
+  vim.o.shiftwidth = 2
+  vim.o.tabstop = 2
 end
 
 -- (Section 2: Keymaps) -------------------------------------------------------
