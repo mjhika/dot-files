@@ -9,6 +9,7 @@ tinygo = "latest"
 zig = "latest"
 node = "latest"
 python = "latest"
+uv = "latest"
 
 # -- ( editor ) ---------------------------------------------------------------
 neovim = "latest"
@@ -52,7 +53,7 @@ pi = "latest"
 "dnf:gcc-c++" = "latest"
 "dnf:tree" = "latest"
 "dnf:rlwrap" = "latest"
-"dnf:util-linux-user" = "latest"
+"dnf:util-linux" = "latest"
 "dnf:brave-origin" = "latest"
 "dnf:1password" = { os = "linux/x64" }
 
