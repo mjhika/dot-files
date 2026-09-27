@@ -1,25 +1,77 @@
 [tools]
+# -- ( languages ) ------------------------------------------------------------
 erlang = "latest"
-go = "latest"
-usage = "latest"
 elixir = "latest"
 java = "temurin"
-zig = "latest"
 clojure = "latest"
-terraform = "latest"
-ansible = "latest"
-jq = "latest"
+go = "latest"
+tinygo = "latest"
+zig = "latest"
 node = "latest"
-"github:tmux/tmux-builds" = "latest"
+python = "latest"
+
+# -- ( editor ) ---------------------------------------------------------------
 neovim = "latest"
+tree-sitter = "latest"
+clj-kondo = "latest"
+
+# -- ( shell and terminal ) ---------------------------------------------------
+"github:tmux/tmux-builds" = "latest"
 fzf = "latest"
+direnv = "latest"
+bat = "latest"
+rg = "latest"
+jq = "latest"
+lazygit = "latest"
 shellcheck = "latest"
 shfmt = "latest"
-bat = "latest"
-direnv = "latest"
-lazygit = "latest"
-rg = "latest"
-pi = "latest"
-tinygo = "latest"
+usage = "latest"
+
+# -- ( infra ) ----------------------------------------------------------------
+terraform = "latest"
+ansible = "latest"
+
+# -- ( secrets ) --------------------------------------------------------------
 age = "latest"
 fnox = "latest"
+
+# -- ( agents ) ---------------------------------------------------------------
+pi = "latest"
+
+# -- ( system packages ) ------------------------------------------------------
+[bootstrap.packages]
+# core, ./dot doctor, nvim (make, cc, unzip for mason)
+"dnf:git" = "latest"
+"dnf:zsh" = "latest"
+"dnf:curl" = "latest"
+"dnf:unzip" = "latest"
+"dnf:tar" = "latest"
+"dnf:xz" = "latest"
+"dnf:make" = "latest"
+"dnf:gcc" = "latest"
+"dnf:gcc-c++" = "latest"
+"dnf:tree" = "latest"
+"dnf:rlwrap" = "latest"
+"dnf:util-linux-user" = "latest"
+# erlang build deps
+"dnf:autoconf" = "latest"
+"dnf:perl" = "latest"
+"dnf:ncurses-devel" = "latest"
+"dnf:openssl-devel" = "latest"
+
+"brew:tree" = { os = "macos" }
+"brew:rlwrap" = { os = "macos" }
+
+# AeroSpace installs in the post-packages hook: its cask is only in
+# nikitabobko/tap, and mise needs Ruby 3 to read a tap cask.
+# adopt = true keeps an app that is already installed instead of replacing it
+"brew-cask:ghostty" = { os = "macos", adopt = true }
+"brew-cask:karabiner-elements" = { os = "macos", adopt = true }
+
+[bootstrap.hooks]
+pre-packages = '[ "$(uname -s)" != Darwin ] || xcode-select -p >/dev/null 2>&1 || xcode-select --install'
+post-packages = '[ "$(uname -s)" != Darwin ] || brew install --cask nikitabobko/tap/aerospace'
+
+# /bin/zsh exists on macOS and on Fedora (/bin -> /usr/bin)
+[bootstrap.user]
+login_shell = "/bin/zsh"
