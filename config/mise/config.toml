@@ -56,6 +56,8 @@ pi = "latest"
 "dnf:util-linux" = "latest"
 "dnf:brave-origin" = "latest"
 "dnf:1password" = { os = "linux/x64" }
+"dnf:1password-cli" = "latest"
+"dnf:tailscale" = "latest"
 
 # erlang build deps
 "dnf:autoconf" = "latest"
@@ -75,7 +77,7 @@ pi = "latest"
 pre-packages = [
   # macos: check for xcode cli
   '[ "$(uname -s)" != Darwin ] || xcode-select -p >/dev/null 2>&1 || xcode-select --install',
-  # fedroa: add brave-origin, and 1password repos to dnf
+  # fedora: add brave-origin, 1password, and tailscale repos to dnf
   '''
   [ -r /etc/os-release ] && . /etc/os-release
   [ "${ID:-}" = fedora ] || exit 0
@@ -94,6 +96,10 @@ pre-packages = [
       'repo_gpgcheck=1' \
       'gpgkey=https://downloads.1password.com/linux/keys/1password.asc' \
       | sudo tee /etc/yum.repos.d/1password.repo >/dev/null
+  fi
+  if [ ! -f /etc/yum.repos.d/tailscale.repo ]; then
+    sudo curl -fsSLo /etc/yum.repos.d/tailscale.repo \
+      https://pkgs.tailscale.com/stable/fedora/tailscale.repo
   fi
   ''',
 ]
